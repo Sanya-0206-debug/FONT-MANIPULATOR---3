@@ -1,55 +1,44 @@
-prediction1=""
+leftWrist_x = 0;
+rightWrist_x = 0;
+difference = 0;
 
-Webcam.set({
-    width:350,
-    height:300,
-    image_format:'png',
-    png_quality: 99,
-    flip_horizontal:false
-});
-camera=document.getElementById("camera");
+function setup(){
+    video = createCapture(VIDEO);
+    video.size(400,400);
+    video.position(10,50);
 
-Webcam.attach('#camera');
-function take_snapshot()
-{
-    Webcam.snap(function(data_uri)
-    {
-        document.getElementById("result").innerHTML='<img id="captured_image" src="'+data_uri+'"/>';
-        console.log(data_uri);
-    });
-};
-console.log('ml5 version:', ml5.version );
-classifier= ml5.imageClassifier('https://teachablemachine.withgoogle.com/models/mENR2Hq2V/model.json',modelLoded);
+    canvas = createCanvas(800,400);
+    canvas.position(430,130);
 
-function modelLoded(){
-    console.log('Model Loded!');
+    poseNet = ml5.poseNet(video,modelDone);
+    poseNet.on('pose',gotposes);
 }
-function check()
-{
-    img=document.getElementById('captured_image');
-    classifier.classify(img, gotResult);
+
+function draw(){
+    background("#ADD8E6");
+    document.getElementById("font_size").innerHTML = "Font Size Of The Text Will Be = "+difference+"px";
+    textSize(difference);
+    fill("#00ff0a");
+    text('Sanya Is Good At Coding',50,400);
 }
-function gotResult(error, result)
-{
-    if (error) {
+
+function modelDone(){
+    console.log("PoseNet Is Initialized And Loaded");
+}
+
+function gotposes(results,error){
+    if(error){
         console.error(error);
     }
-    else{
-        console.log(result);
-        document.getElementById('result_Vehicle_name').innerHTML = result[0].label;
-        prediction1=result[0].label;
-        speak();
-        if(result[0].label=='Jedi Interceptor Type:Speed Jet'){
-        }
-        if(result[0].label=='Jeid Starfighter Type:Starfighter'){
-        }
-        if(result[0].label=='F9 Type Speed Jet'){
-        }
+    if(results.length > 0){
+        console.log(results);
+
+        leftWrist_x = results[0].pose.leftWrist.x;
+        rightWrist_x = results[0].pose.rightWrist.x;
+
+        difference = floor(leftWrist_x - rightWrist_x);
+
+        console.log("rightWrist_x = "+results[0].pose.rightWrist.x + " rightWrist_y = "+results[0].pose.rightWrist.y);
+        console.log("leftWrist_x = "+results[0].pose.leftWrist.x + " leftWrist_y = "+results[0].pose.leftWrist.y);
     }
-}
-function speak(){
-    var synth = window.speechSynthesis;
-    speak_data_1 = "The first prediction is" + prediction1;
-    var utterthis = new SpeechSynthesisUtterance(speak_data_1);
-    synth.speak(utterthis);
 }
